@@ -1,6 +1,8 @@
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || process.env.api_base || "http://192.168.18.153:3000";
+
 export async function getPosts(role) {
     try {
-        const response = await fetch("http://192.168.18.153:3000/posts", {
+        const response = await fetch(`${API_BASE}/posts`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -21,7 +23,7 @@ export async function getPosts(role) {
 
 export async function getPostById(role, id) {
     try{
-        const response = await fetch(`http://192.168.18.153:3000/posts/${id}`, {
+        const response = await fetch(`${API_BASE}/posts/${id}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -42,7 +44,7 @@ export async function getPostById(role, id) {
 
 export async function updatePost(role, id, postData) {
     try {
-        const response = await fetch(`http://192.168.18.153:3000/posts/${id}`, {
+        const response = await fetch(`${API_BASE}/posts/${id}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
@@ -64,7 +66,7 @@ export async function updatePost(role, id, postData) {
 
 export async function createPost(role, postData) {
     try {
-        const response = await fetch("http://192.168.18.153:3000/posts", {
+        const response = await fetch(`${API_BASE}/posts`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -86,7 +88,7 @@ export async function createPost(role, postData) {
 
 export async function deletePost(role, id) {
     try {
-        const response = await fetch(`http://192.168.18.153:3000/posts/${id}`, {
+        const response = await fetch(`${API_BASE}/posts/${id}`, {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",
@@ -107,7 +109,7 @@ export async function deletePost(role, id) {
 
 export async function login(email, password) {
     try {
-        const response = await fetch("http://192.168.18.153:3000/auth/login", {
+        const response = await fetch(`${API_BASE}/auth/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -128,7 +130,7 @@ export async function login(email, password) {
 
 export async function createComment(id, commentData, role) {
     try {
-        const response = await fetch(`http://192.168.18.153:3000/posts/comment/${id}`, {
+        const response = await fetch(`${API_BASE}/posts/comment/${id}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
