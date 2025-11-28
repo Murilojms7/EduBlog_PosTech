@@ -1,6 +1,6 @@
 "use client";
 
-import { Bold, Italic, Underline, List, ListOrdered, Link as LinkIcon, Type, Clock, Save, Send, CheckCircle, XCircle, X } from "lucide-react";
+import { Bold, Italic, Underline, List, ListOrdered, Link as LinkIcon, Type, Send, CheckCircle, XCircle, X } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createPost } from "@/services/api";
@@ -13,9 +13,7 @@ export default function CriarPostPage() {
     const [author, setAuthor] = useState("");
 
     const [content, setContent] = useState("");
-    const [lastSaved, setLastSaved] = useState<Date | null>(null);
     const editorRef = useRef<HTMLDivElement>(null);
-    const [isSaving, setIsSaving] = useState(false);
     const [isPublishing, setIsPublishing] = useState(false);
     const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
@@ -26,16 +24,6 @@ export default function CriarPostPage() {
             setAuthor(storedName);
         }
     }, []);
-
-    useEffect(() => {
-        const autoSaveInterval = setInterval(() => {
-            if (title || content) {
-                setLastSaved(new Date());
-            }
-        }, 30000);
-
-        return () => clearInterval(autoSaveInterval);
-    }, [title, content]);
 
     useEffect(() => {
         if (notification) {
@@ -268,7 +256,6 @@ export default function CriarPostPage() {
                             <button
                                 type="button"
                                 onClick={handlePublish}
-                                disabled={isSaving || isPublishing || !title.trim() || !hasContent() || !author.trim()}
                                 className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
                                 <Send className="w-4 h-4" />

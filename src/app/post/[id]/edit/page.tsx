@@ -1,43 +1,58 @@
 "use client";
 import { getPostById, updatePost } from "@/services/api";
-import { CassetteTapeIcon, XIcon, Loader2 } from "lucide-react";
+import { CassetteTapeIcon, XIcon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+
+// 1. Interface para evitar o uso de 'any'
+interface PostData {
+    id: string;
+    title: string;
+    content: string;
+    author: string;
+    created_at?: string;
+    updated_at?: string;
+    createdAt?: string;
+    updatedAt?: string;
+}
 
 // Função para formatar data
 const formatDate = (dateString: string) => {
     if (!dateString) return "Data não disponível";
     const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR', { 
-        year: 'numeric', 
-        month: '2-digit', 
-        day: '2-digit' 
+    return date.toLocaleDateString('pt-BR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
     });
 };
 
 export default function EditarPostPage() {
     const { id } = useParams();
     const router = useRouter();
-    const [post, setPost] = useState<any>(null);
+
+    // 2. Substituímos <any> por <PostData | null>
+    const [post, setPost] = useState<PostData | null>(null);
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
-    
+
     useEffect(() => {
         async function loadData() {
             setIsLoading(true);
             const role = localStorage.getItem("role");
-            const data = await getPostById(role, id);
+            // Cast seguro para PostData
+            const data = await getPostById(role, id as string) as PostData;
             if (data) {
                 setPost(data);
                 setTitle(data.title || "");
                 setContent(data.content || "");
             }
             setIsLoading(false);
-        }   
+        }
         loadData();
     }, [id]);
 
@@ -58,9 +73,9 @@ export default function EditarPostPage() {
                 content: content.trim(),
             };
 
-            await updatePost(role, id, postData);
+            await updatePost(role, id as string, postData);
             setSuccess(true);
-            
+
             setTimeout(() => {
                 router.push(`/post/${id}`);
             }, 1000);
@@ -94,7 +109,7 @@ export default function EditarPostPage() {
             </div>
         );
     }
-    
+
     return (
         <div className="min-h-screen flex flex-col bg-white">
             <main className="px-4 sm:px-8 md:px-12 lg:px-20 xl:px-40 py-10 flex justify-center">
@@ -123,28 +138,28 @@ export default function EditarPostPage() {
                         {/* Formulário de criação de publicação */}
                         <div className="flex flex-col gap-3 text-gray-500">
                             <label htmlFor="title" className="text-md font-medium text-black">Título</label>
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 id="title"
-                                value={title} 
+                                value={title}
                                 onChange={(e) => {
                                     setTitle(e.target.value);
                                     setError(null);
                                 }}
-                                placeholder="Título da publicação" 
-                                className="w-full p-2 border border-gray-300 rounded-xl bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                placeholder="Título da publicação"
+                                className="w-full p-2 border border-gray-300 rounded-xl bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 disabled={isSaving}
                             />
                             <label htmlFor="content" className="text-md font-medium text-black">Conteúdo</label>
-                            <textarea 
+                            <textarea
                                 id="content"
-                                placeholder="Conteúdo da publicação" 
-                                value={content} 
+                                placeholder="Conteúdo da publicação"
+                                value={content}
                                 onChange={(e) => {
                                     setContent(e.target.value);
                                     setError(null);
                                 }}
-                                className="w-full p-2 border border-gray-300 rounded-xl bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                className="w-full p-2 border border-gray-300 rounded-xl bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 rows={10}
                                 disabled={isSaving}
                             />
@@ -156,17 +171,17 @@ export default function EditarPostPage() {
                                 <p className="font-bold text-black text-lg">Ações</p>
                                 <hr className="border-gray-300 my-1" />
                                 <div className="flex flex-col gap-3">
-                                    <button 
+                                    <button
                                         onClick={handleSave}
                                         disabled={isSaving}
-                                        className="w-full p-2 border text-md gap-2 items-center justify-center border-gray-300 bg-blue-500 rounded-xl flex hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed" 
+                                        className="w-full p-2 border text-md gap-2 items-center justify-center border-gray-300 bg-blue-500 rounded-xl flex hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         <CassetteTapeIcon className="w-4 h-4 text-white" />
                                         <p className="text-white font-medium">
                                             {isSaving ? "Salvando..." : "Salvar alterações"}
                                         </p>
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={handleCancel}
                                         disabled={isSaving}
                                         className="w-full text-md flex gap-2 items-center justify-center p-2 border border-gray-300 rounded-xl bg-gray-100 hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
