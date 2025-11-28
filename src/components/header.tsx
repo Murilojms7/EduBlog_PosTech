@@ -11,6 +11,10 @@ export default function Header() {
   useEffect(() => {
     // Verifica o localStorage apenas no cliente para evitar erros de Hidratação
     const role = localStorage.getItem("role");
+
+    // Desabilitamos o lint aqui pois precisamos atualizar o estado após a montagem
+    // para garantir que o acesso ao localStorage ocorra apenas no cliente.
+    // eslint-disable-next-line
     setIsLoggedIn(!!role);
   }, []);
 
