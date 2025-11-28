@@ -1,4 +1,5 @@
 "use client";
+
 import { Bold, Italic, Underline, List, ListOrdered, Link as LinkIcon, Type, Clock, Save, Send, CheckCircle, XCircle, X } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -7,13 +8,24 @@ import { createPost } from "@/services/api";
 export default function CriarPostPage() {
     const router = useRouter();
     const [title, setTitle] = useState("The Impact of Technology in Modern Classrooms");
-    const [author, setAuthor] = useState("Jane Doe");
+
+    // ALTERADO: Inicia vazio para evitar erro de Hidratação (diferença entre server e client)
+    const [author, setAuthor] = useState("");
+
     const [content, setContent] = useState("");
     const [lastSaved, setLastSaved] = useState<Date | null>(null);
     const editorRef = useRef<HTMLDivElement>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [isPublishing, setIsPublishing] = useState(false);
     const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+    // NOVO: Carrega os dados do usuário apenas quando estiver no navegador (Client-side)
+    useEffect(() => {
+        const storedName = localStorage.getItem("name");
+        if (storedName) {
+            setAuthor(storedName);
+        }
+    }, []);
 
     useEffect(() => {
         const autoSaveInterval = setInterval(() => {
@@ -40,9 +52,13 @@ export default function CriarPostPage() {
     };
 
     const execCommand = (command: string, value?: string) => {
-        document.execCommand(command, false, value);
-        if (editorRef.current) {
-            setContent(editorRef.current.innerHTML);
+        // Nota: document.execCommand é deprecated, mas funciona.
+        // Em um refatoramento futuro, considere usar uma lib como Tiptap.
+        if (typeof document !== 'undefined') {
+            document.execCommand(command, false, value);
+            if (editorRef.current) {
+                setContent(editorRef.current.innerHTML);
+            }
         }
     };
 
@@ -68,9 +84,10 @@ export default function CriarPostPage() {
         setNotification(null);
 
         try {
+            // Aqui é seguro usar localStorage pois esta função só é chamada pelo click do usuário
             const role = localStorage.getItem("role");
             const editorContent = editorRef.current?.innerHTML || content;
-            
+
             const postData = {
                 title: title.trim(),
                 content: editorContent.trim(),
@@ -79,7 +96,7 @@ export default function CriarPostPage() {
 
             const result = await createPost(role, postData);
             showNotification('success', "Post publicado com sucesso!");
-            
+
             setTimeout(() => {
                 if (result && result.id) {
                     router.push(`/post/${result.id}`);
@@ -99,11 +116,10 @@ export default function CriarPostPage() {
         <div className="min-h-screen flex flex-col bg-white">
             {/* Notification Toast */}
             {notification && (
-                <div className={`fixed top-4 right-4 z-50 animate-slide-in-right ${
-                    notification.type === 'success' 
-                        ? 'bg-green-50 border-green-200 text-green-800' 
-                        : 'bg-red-50 border-red-200 text-red-800'
-                } border rounded-lg shadow-lg px-4 py-3 min-w-[300px] max-w-md flex items-center gap-3`}>
+                <div className={`fixed top-4 right-4 z-50 animate-slide-in-right ${notification.type === 'success'
+                    ? 'bg-green-50 border-green-200 text-green-800'
+                    : 'bg-red-50 border-red-200 text-red-800'
+                    } border rounded-lg shadow-lg px-4 py-3 min-w-[300px] max-w-md flex items-center gap-3`}>
                     {notification.type === 'success' ? (
                         <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
                     ) : (
@@ -119,11 +135,11 @@ export default function CriarPostPage() {
                 </div>
             )}
             <div className="flex flex-col gap-3 px-4 sm:px-8 md:px-12 lg:px-20 xl:px-40 pt-10 flex justify-center">
-                        <p className="text-4xl font-black text-blue-600">Criar Publicação</p>
-                        <p className="text-base text-gray-600">
-                            Crie uma publicação para o seu blog
-                        </p>
-                    </div>  
+                <p className="text-4xl font-black text-blue-600">Criar Publicação</p>
+                <p className="text-base text-gray-600">
+                    Crie uma publicação para o seu blog
+                </p>
+            </div>
             <main className="px-4 sm:px-8 md:px-12 lg:px-20 xl:px-40 py-10 flex justify-center">
                 <div className="w-full max-w-4xl flex flex-col gap-6">
                     {/* Title Section */}
@@ -148,6 +164,7 @@ export default function CriarPostPage() {
                         </label>
                         {/* Toolbar */}
                         <div className="flex items-center gap-2 p-2 border border-gray-300 rounded-t-lg bg-gray-50">
+                            {/* ... Botões mantidos iguais ... */}
                             <button
                                 type="button"
                                 onClick={() => execCommand("bold")}
@@ -233,10 +250,11 @@ export default function CriarPostPage() {
                         <label htmlFor="author" className="text-sm font-semibold text-gray-700">
                             Author
                         </label>
+                        {/* ALTERADO: Removemos o acesso direto ao localStorage aqui */}
                         <input
                             type="text"
                             id="author"
-                            value={localStorage.getItem("name") || ""}
+                            value={author}
                             onChange={(e) => setAuthor(e.target.value)}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                             placeholder="Enter author name"
