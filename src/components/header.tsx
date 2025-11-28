@@ -9,6 +9,7 @@ export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
+    // Verifica o localStorage apenas no cliente para evitar erros de Hidratação
     const role = localStorage.getItem("role");
     setIsLoggedIn(!!role);
   }, []);
@@ -17,7 +18,7 @@ export default function Header() {
     <header className="mt-2 w-full max-w-7xl mx-auto bg-white border-2 shadow-md m-2 rounded-2xl p-2">
       <nav className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         <Link href="/" className="text-xl font-bold text-blue-600 flex items-center gap-2">
-        <GraduationCap className="w-8 h-8 text-blue-600" /> 
+          <GraduationCap className="w-8 h-8 text-blue-600" />
           EduBlog
         </Link>
 

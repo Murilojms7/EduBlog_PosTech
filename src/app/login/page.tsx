@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, GraduationCap} from "lucide-react";
+import { Eye, EyeOff, GraduationCap } from "lucide-react";
 import { login } from "@/services/api";
 import background from "@/assents/undraw_online-community_3o0l.png";
 import Image from "next/image";
@@ -37,8 +37,10 @@ export default function LoginPage() {
             }
 
             router.push("/");
-        } catch (err: any) {
-            setError(err.message || "Email ou senha incorretos. Tente novamente.");
+        } catch (err: unknown) {
+            // Tipagem segura do erro
+            const errorMessage = err instanceof Error ? err.message : "Email ou senha incorretos. Tente novamente.";
+            setError(errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -48,38 +50,32 @@ export default function LoginPage() {
         <div className="min-h-screen flex">
             {/* Painel Esquerdo */}
             <div className="hidden lg:flex lg:w-1/2 bg- relative overflow-hidden">
-                {/* Arte 3D Abstrata */}
                 <div className="absolute inset-0 flex items-center justify-center pb-10">
-                    <Image src={background} alt="Login Background" className="w-200 h-110 object-cover"/>
+                    <Image src={background} alt="Login Background" className="w-200 h-110 object-cover" />
                 </div>
             </div>
 
-            {/* Painel Direito - Formulário de Login */}
+            {/* Painel Direito */}
             <div className="w-full lg:w-1/2 bg-blue-50 flex items-center justify-center p-8">
                 <div className="w-full max-w-md ">
-                    {/* Logo */}
                     <div className="flex items-center gap-2 mb-8">
                         <GraduationCap className="w-8 h-8 text-blue-600" />
                         <h2 className="text-2xl font-bold text-blue-600">EduBlog</h2>
                     </div>
 
-                    {/* Título */}
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">Teacher Login</h1>
                     <p className="text-gray-600 mb-8">Welcome back! Please enter your details.</p>
 
-                    {/* Mensagem de erro */}
                     {error && (
                         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
                             {error}
                         </div>
                     )}
 
-                    {/* Formulário */}
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Campo Email */}
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-black mb-2">
-                                Email 
+                                Email
                             </label>
                             <input
                                 type="email"
@@ -96,7 +92,6 @@ export default function LoginPage() {
                             />
                         </div>
 
-                        {/* Campo Senha */}
                         <div>
                             <label htmlFor="password" className="block text-sm font-medium text-black mb-2">
                                 Senha
@@ -130,14 +125,12 @@ export default function LoginPage() {
                             </div>
                         </div>
 
-                        {/* Link Esqueceu Senha */}
                         <div className="flex justify-end">
                             <a href="#" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
                                 Forgot Password?
                             </a>
                         </div>
 
-                        {/* Botão Login */}
                         <button
                             type="submit"
                             disabled={isLoading}
@@ -147,15 +140,13 @@ export default function LoginPage() {
                         </button>
                     </form>
 
-                    {/* Link Contato Admin */}
                     <div className="mt-6 text-center text-sm text-gray-600">
-                        Don't have an account?{" "}
+                        Don&apos;t have an account?{" "}
                         <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">
                             Contact Admin
                         </a>
                     </div>
 
-                    {/* Link Help & Support */}
                     <div className="mt-8 text-center">
                         <a href="#" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
                             Help & Support
