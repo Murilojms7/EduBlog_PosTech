@@ -1,41 +1,44 @@
 "use client";
-import { SearchIcon, Loader2 } from "lucide-react";
+
+import { SearchIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getPosts } from "@/services/api";
 import Link from "next/link";
 
+// 1. Criamos uma interface para tipar os dados e evitar o erro de "Unexpected any"
+interface PostData {
+    id: string | number;
+    title: string;
+    author: string;
+    content?: string;
+    description?: string;
+    imageUrl?: string;
+}
 
 const getRandomImage = (postId: string | number) => {
     const seed = typeof postId === 'string' ? parseInt(postId.replace(/\D/g, '')) || Math.floor(Math.random() * 1000) : postId;
     return `https://picsum.photos/seed/${seed}/800/600`;
 };
 
-// Função para gerar uma descrição a partir do conteúdo
-const getDescription = (post: any) => {
-    // Se já existe uma descrição, usa ela
+const getDescription = (post: PostData) => {
     if (post.description && post.description.trim()) {
         return post.description;
     }
-    
-    // Caso contrário, cria uma descrição a partir do conteúdo
+
     if (post.content) {
-        // Remove HTML tags se houver
         const textContent = post.content.replace(/<[^>]*>/g, '');
-        // Remove espaços extras e quebras de linha
         const cleanContent = textContent.replace(/\s+/g, ' ').trim();
-        // Limita a 150 caracteres e adiciona reticências se necessário
-        return cleanContent.length > 150 
-            ? cleanContent.substring(0, 150) + '...' 
+        return cleanContent.length > 150
+            ? cleanContent.substring(0, 150) + '...'
             : cleanContent;
     }
-    
-    // Se não houver conteúdo, retorna uma mensagem padrão
+
     return 'Sem descrição disponível';
 };
 
 export default function Home() {
-    const [posts, setPosts] = useState([]);
-    const [filteredPosts, setFilteredPosts] = useState([]);
+    // Tipamos o useState com a interface
+    const [posts, setPosts] = useState<PostData[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [isLoading, setIsLoading] = useState(true);
 
@@ -43,27 +46,30 @@ export default function Home() {
         async function loadData() {
             setIsLoading(true);
             const role = "user";
-            const data = await getPosts(role);
-            setPosts(data);
-            setFilteredPosts(data);
-            setIsLoading(false);
+            try {
+                // Adicionamos 'as PostData[]' para garantir que a API retorna o formato certo
+                const data = await getPosts(role) as PostData[];
+                setPosts(data);
+            } catch (error) {
+                console.error("Erro ao carregar posts:", error);
+                setPosts([]);
+            } finally {
+                setIsLoading(false);
+            }
         }
-
         loadData();
     }, []);
 
-    useEffect(() => {
-        if (!searchTerm.trim()) {
-            setFilteredPosts(posts);
-        } else {
-            const filtered = posts.filter((post: any) =>
-                post.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                post.author?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                post.description?.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-            setFilteredPosts(filtered);
-        }
-    }, [searchTerm, posts]);
+    // 2. CORREÇÃO PRINCIPAL: Estado Derivado.
+    // Em vez de usar useEffect para atualizar um state secundário,
+    // calculamos a variável diretamente. Isso remove o erro de sincronização do React.
+    const filteredPosts = !searchTerm.trim()
+        ? posts
+        : posts.filter((post) =>
+            post.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            post.author?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (post.description && post.description.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
 
     return (
         <div className="min-h-screen flex flex-col bg-white">
@@ -80,7 +86,6 @@ export default function Home() {
                     {/* Search & Filters */}
                     <div className="flex flex-col gap-4">
                         <div className="flex flex-col md:flex-row gap-4 items-center">
-                            {/* Input de busca */}
                             <div className="flex-grow w-full">
                                 <label className="w-full">
                                     <div className="flex items-center rounded-lg bg-gray-100 h-12 px-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200 transition">
@@ -101,8 +106,8 @@ export default function Home() {
                             <div className="text-sm text-gray-600">
                                 {searchTerm ? (
                                     <span>
-                                        {filteredPosts.length === 0 
-                                            ? "Nenhum resultado encontrado" 
+                                        {filteredPosts.length === 0
+                                            ? "Nenhum resultado encontrado"
                                             : `${filteredPosts.length} ${filteredPosts.length === 1 ? 'resultado encontrado' : 'resultados encontrados'} para "${searchTerm}"`
                                         }
                                     </span>
@@ -123,7 +128,6 @@ export default function Home() {
                                     <p className="text-xl font-bold text-gray-800">Carregando posts...</p>
                                     <p className="text-sm text-gray-500">Aguarde um momento</p>
                                 </div>
-                                {/* Pontos animados */}
                                 <div className="flex gap-2">
                                     <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
                                     <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
@@ -143,7 +147,7 @@ export default function Home() {
                                     </p>
                                 </div>
                             ) : (
-                                filteredPosts.map((post: any, index: number) => {
+                                filteredPosts.map((post, index) => {
                                     const imageUrl = post.imageUrl || getRandomImage(post.id || index);
                                     return (
                                         <Link
